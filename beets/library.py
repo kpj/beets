@@ -1076,6 +1076,10 @@ class BooleanQuery(MatchQuery):
         self.pattern = int(self.pattern)
 
 
+import parsedatetime.parsedatetime as pdt
+from time import mktime
+from datetime import datetime
+
 class NumericQuery(FieldQuery):
     """Matches numeric fields. A syntax using Ruby-style range ellipses
     (``..``) lets users specify one- or two-sided ranges. For example,
@@ -1103,7 +1107,17 @@ class NumericQuery(FieldQuery):
         super(NumericQuery, self).__init__(field, pattern, fast)
         self.numtype = self.kinds[field]
 
+        cal = pdt.Calendar()
+        def get_correct_attr(dt, f):
+            if f == "year":
+                return str(dt.year).decode('unicode-escape')
+            elif f == "month":
+                return str(dt.month).decode('unicode-escape')
+            elif f == "day":
+                return str(dt.day).decode('unicode-escape')
         parts = pattern.split('..', 1)
+        parts = [get_correct_attr(datetime.fromtimestamp(mktime(cal.parse(p)[0])), field) for p in parts if not p.isdigit()] + [p for p in parts if p.isdigit()]
+        print parts
         if len(parts) == 1:
             # No range.
             self.point = self._convert(parts[0])
@@ -1116,10 +1130,12 @@ class NumericQuery(FieldQuery):
             self.rangemax = self._convert(parts[1])
 
     def match(self, item):
+        print "huuuuu"
         value = getattr(item, self.field)
         if isinstance(value, basestring):
             value = self._convert(value)
 
+        print value
         if self.point is not None:
             return value == self.point
         else:
