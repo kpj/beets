@@ -1117,7 +1117,6 @@ class NumericQuery(FieldQuery):
                 return str(dt.day).decode('unicode-escape')
         parts = pattern.split('..', 1)
         parts = [get_correct_attr(datetime.fromtimestamp(mktime(cal.parse(p)[0])), field) for p in parts if not p.isdigit()] + [p for p in parts if p.isdigit()]
-        print parts
         if len(parts) == 1:
             # No range.
             self.point = self._convert(parts[0])
@@ -1130,12 +1129,10 @@ class NumericQuery(FieldQuery):
             self.rangemax = self._convert(parts[1])
 
     def match(self, item):
-        print "huuuuu"
         value = getattr(item, self.field)
         if isinstance(value, basestring):
             value = self._convert(value)
 
-        print value
         if self.point is not None:
             return value == self.point
         else:
